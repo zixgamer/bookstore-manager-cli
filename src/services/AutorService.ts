@@ -5,6 +5,8 @@ export class AutorService {
   constructor(private autorRepository: AutorRepository) {}
 
   async criar(autor: Autor): Promise<Autor> {
+    this.validarDadosAutor(autor);
+
     try {
       return await this.autorRepository.criar(autor);
     } catch (error) {
