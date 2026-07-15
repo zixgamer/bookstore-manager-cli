@@ -20,14 +20,14 @@ export class AutorController {
         return `Nenhum autor cadastrado no sistema`;
       }
 
-      let tabela = "====================================";
-      tabela += "         LISTA DE AUTORES           ";
-      tabela += "====================================";
-      tabela += "ID| Nome";
-      tabela += "------------------------------------";
+      let tabela = "====================================\n";
+      tabela += "         LISTA DE AUTORES           \n";
+      tabela += "====================================\n";
+      tabela += "ID| Nome\n";
+      tabela += "------------------------------------\n";
 
       autores.forEach((autor) => {
-        tabela += `${autor.id}| ${autor.nome}`;
+        tabela += `${autor.id}| ${autor.nome}\n`;
       });
 
       tabela += "===================================";

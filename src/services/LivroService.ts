@@ -1,11 +1,12 @@
 import { AutorRepository } from "../repositories/AutorRepository";
 import { LivroRepository } from "../repositories/LivroRepository";
 import { Livro, LivroImpl } from "../models/Livro";
+import { AutorService } from "./AutorService";
 
 export class LivroService {
   constructor(
     private livroRepository: LivroRepository,
-    private autorRepository: AutorRepository,
+    private autoService: AutorService,
   ) {}
 
   async criar(livro: Livro): Promise<Livro> {
@@ -39,7 +40,7 @@ export class LivroService {
       );
     }
 
-    const autor = await this.autorRepository.buscarPorId(livro.autorId);
+    const autor = await this.autoService.buscarPorId(livro.autorId);
     if (!autor) {
       throw new Error(
         `O Autor com ID ${livro.autorId} não foi encontrado no nosso sistema.`,

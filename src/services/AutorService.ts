@@ -31,8 +31,8 @@ export class AutorService {
   }
 
   async atualizar(id: number, autor: Autor): Promise<Autor> {
-    const atualizado = await this.autorRepository.atualizar(id, autor);
     await this.buscarPorId(id);
+    this.validarDadosAutor(autor);
 
     try {
       const autorAtualizado = await this.autorRepository.atualizar(id, autor);

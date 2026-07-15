@@ -1,10 +1,5 @@
-import * as readline from "readline";
+import { rl } from "../utils/readline";
 import { AutorController } from "../controllers/AutorController";
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 const question = (query: string): Promise<string> => {
   return new Promise((resolve) => rl.question(query, resolve));
