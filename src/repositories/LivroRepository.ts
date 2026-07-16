@@ -57,6 +57,13 @@ export class LivroRepository {
     return mapearLinha(resultado.rows[0]);
   }
 
+  async atualizarEstoque(id: number, novaQuantidade: number): Promise<void> {
+    await pool.query(
+      "UPDATE livro SET quantidade_disponivel = $1 WHERE id = $2",
+      [novaQuantidade, id],
+    );
+  }
+
   async remover(id: number): Promise<boolean> {
     const resultado = await pool.query("DELETE FROM livro WHERE id = $1", [id]);
     return (resultado.rowCount ?? 0) > 0;
