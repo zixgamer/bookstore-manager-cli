@@ -24,4 +24,37 @@ export class EmprestimoRepository {
       row.data_devolucao ? new Date(row.data_devolucao) : undefined,
     );
   }
+
+  async buscarPorId(id: number): Promise<EmprestimoImpl | null> {
+    const query = "SELECT * FROM emprestimo WHERE id = $1";
+    const { rows } = await pool.query(query, [id]);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return this.mapearLinha(rows[0]);
+  }
+
+  async registroDevolucao(id: number): Promise<void> {
+    await pool.query(
+      "UPDATE emprestimo SET data_devolucao = NOW() WHERE id = $1",
+      [id],
+    );
+  }
+
+  async listarCompleto(): Promise<any[]> {
+    const query = `
+    SELECT 
+      e.id, e.data_emprestimo, e.data_devolucao,
+      c.nome as cliente_nome,
+      l.titulo as livro_titulo
+    FROM emprestimo e 
+    JOIN cliente c ON e.fk_cliente_id = c.id
+    JOIN livro l ON e.fk_livro_id = l.id
+    ORDER BY e.data_emprestimo DESC;`;
+
+    const { rows } = await pool.query(query);
+    return rows;
+  }
 }

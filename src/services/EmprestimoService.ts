@@ -51,4 +51,31 @@ export class EmprestimoService {
     });
     return emprestimoCriado;
   }
+
+  async registrarDevolucao(id: number): Promise<void> {
+    const emprestimo = await this.emprestimoRepo.buscarPorId(id);
+    if (!emprestimo) throw new Error("Empréstimo não foi encontrado");
+
+    if (emprestimo.dataDevolucao) {
+      throw new Error("Este livro já foi devolvido");
+    }
+
+    await this.emprestimoRepo.registroDevolucao(id);
+    const livro = await this.livroRepo.buscarPorId(emprestimo.livroId);
+
+    if (livro) {
+      await this.livroRepo.atualizarEstoque(
+        livro.id!,
+        livro.quantidadeDisponivel + 1,
+      );
+    } else {
+      throw new Error(
+        "O livro vinculado ao empréstimo não foi encontrado no sistema",
+      );
+    }
+  }
+
+  async listarEmprestimo(): Promise<any[]> {
+    return await this.emprestimoRepo.listarCompleto();
+  }
 }
