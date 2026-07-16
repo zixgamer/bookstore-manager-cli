@@ -2,7 +2,6 @@ import { rl } from "../utils/readline";
 import { EmprestimoController } from "../controllers/EmprestimoController";
 import { LivroController } from "../controllers/LivroController";
 import { ClienteController } from "../controllers/ClienteController";
-import { Readline } from "node:readline/promises";
 
 export class EmprestimoMenu {
   constructor(
