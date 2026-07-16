@@ -1,9 +1,7 @@
-import {
-  ClienteService,
-  EmailJaCadastrado,
-  ClienteNaoEncontrado,
-  DadosInvalidos,
-} from "../services/ClienteService";
+import { ClienteService } from "../services/ClienteService";
+import { NumeroObrigatorio } from "../utils/inputHelper";
+import { EmailJaCadastrado, DadosInvalidosError } from "../utils/errors";
+import { Cliente } from "../models/Cliente";
 
 export class ClienteController {
   constructor(private clienteService: ClienteService) {}
@@ -15,11 +13,11 @@ export class ClienteController {
     } catch (error) {
       if (
         error instanceof EmailJaCadastrado ||
-        error instanceof DadosInvalidos
+        error instanceof DadosInvalidosError
       ) {
-        return `Erro encontrado! ${error.message}`;
+        return `Erro encontrado: ${error.message}`;
       }
-      return `Erro inesperado ocorreu ${(error as Error).message}`;
+      return `Erro inesperado ocorreu: ${(error as Error).message}`;
     }
   }
 
@@ -39,25 +37,20 @@ export class ClienteController {
 
   async buscarPorId(idRaw: string): Promise<string> {
     try {
-      const buscaId = parseInt(idRaw);
-      if (isNaN(buscaId)) return "Erro! o ID é inválido";
-
+      const buscaId = NumeroObrigatorio(idRaw, "ID do Cliente");
       const cliente = await this.clienteService.buscarPorId(buscaId);
-      return `O cliente encontrado: ${cliente.nome}, seu email: ${cliente.email}`;
+      return `Cliente encontrado: ${cliente.nome}, seu email: ${cliente.email}`;
     } catch (error) {
-      if (error instanceof ClienteNaoEncontrado) {
-        return `${error.message}`;
-      }
-      return `Erro inesperado: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 
   async atualizar(idRaw: string, nome: string, email: string): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      if (isNaN(id)) return `Erro: ID indicado é inválido`;
+      const id = NumeroObrigatorio(idRaw, "ID do Cliente");
 
-      const atualizarId: any = {};
+      // Troca de 'any' por 'Partial<Cliente>' ativando o strict typing
+      const atualizarId: Partial<Cliente> = {};
       if (nome.trim() !== "") atualizarId.nome = nome;
       if (email.trim() !== "") atualizarId.email = email;
 
@@ -67,29 +60,17 @@ export class ClienteController {
       );
       return `Cliente com ID ${clienteAtualizar.id} foi atualizado com sucesso`;
     } catch (error) {
-      if (
-        error instanceof ClienteNaoEncontrado ||
-        error instanceof EmailJaCadastrado ||
-        error instanceof DadosInvalidos
-      ) {
-        return `Erro encontrado ${error.message}`;
-      }
-      return `Erro inesperado: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 
   async remover(idRaw: string): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      if (isNaN(id)) return `Erro: ID indicado é inválido`;
-
+      const id = NumeroObrigatorio(idRaw, "ID do Cliente");
       await this.clienteService.remover(id);
       return `O cliente foi removido com sucesso!`;
     } catch (error) {
-      if (error instanceof ClienteNaoEncontrado) {
-        return `${error.message}`;
-      }
-      return `Erro inesperado: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 }

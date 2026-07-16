@@ -1,9 +1,6 @@
-import {
-  EmprestimoService,
-  ClienteNaoEncontrado,
-  LivroIndisponivel,
-  LivroNaoEncontrado,
-} from "../services/EmprestimoService";
+import { EmprestimoService } from "../services/EmprestimoService";
+import { NumeroObrigatorio } from "../utils/inputHelper";
+import { RegistroNaoEncontrado, LivroIndiposnivel } from "../utils/errors";
 
 export class EmprestimoController {
   constructor(private emprestimoService: EmprestimoService) {}
@@ -13,50 +10,48 @@ export class EmprestimoController {
     livroIdRaw: string,
   ): Promise<string> {
     try {
-      const clienteId = parseInt(clienteIdRaw);
-      const livroId = parseInt(livroIdRaw);
-
-      if (isNaN(clienteId) || isNaN(livroId)) {
-        return `Erro: O ID do cliente e do livro digitados devem ser numeros validos`;
-      }
+      const clienteId = NumeroObrigatorio(clienteIdRaw, "ID do Cliente");
+      const livroId = NumeroObrigatorio(livroIdRaw, "ID do Livro");
 
       const emprestimo = await this.emprestimoService.criar(clienteId, livroId);
-      return `O emprestimo foi realizado com sucesso! ID do seu emprestimo: ${emprestimo.id}`;
+      return `✅ O empréstimo foi realizado com sucesso! ID do seu empréstimo: ${emprestimo.id}`;
     } catch (error) {
       if (
-        error instanceof ClienteNaoEncontrado ||
-        error instanceof LivroNaoEncontrado ||
-        error instanceof LivroIndisponivel
+        error instanceof RegistroNaoEncontrado ||
+        error instanceof LivroIndiposnivel
       ) {
-        return `Erro: ${error.message}`;
+        return `Erro de Regra: ${error.message}`;
       }
-
-      return `Erro inesperado!! ${(error as Error).message}`;
+      return `Erro inesperado: ${(error as Error).message}`;
     }
   }
 
   async devolver(idRaw: string): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      if (isNaN(id)) return "Erro: o ID e invalido";
+      const id = NumeroObrigatorio(idRaw, "ID do Empréstimo");
 
       await this.emprestimoService.registrarDevolucao(id);
-      return "A devolucao do livro foi registrada com uscesso! Estoque foi atualizado.";
+      return "A devolução do livro foi registrada com sucesso! Estoque atualizado.";
     } catch (error: any) {
       return `Erro: ${error.message}`;
     }
   }
 
   async listarEmprestimo(): Promise<string> {
-    const lista = await this.emprestimoService.listarEmprestimo();
-    if (lista.length === 0) return "Nenhum emprestimo registrado ate o momento";
+    try {
+      const lista = await this.emprestimoService.listarEmprestimo();
+      if (lista.length === 0)
+        return "Nenhum empréstimo registrado até o momento.";
 
-    return lista
-      .map(
-        (e) =>
-          `ID: ${e.id} | Cliente: ${e.cliente_nome} | Livro: ${e.livro_titulo} | Emprestimo: ${e.data_emprestimo.toLocalDateString()} | ` +
-          `Devolvido: ${e.data_devolucao ? e.data_devolucao.toLocalDateString() : "Nao"}`,
-      )
-      .join("\n");
+      return lista
+        .map(
+          (e) =>
+            `ID: ${e.id} | Cliente: ${e.cliente_nome} | Livro: ${e.livro_titulo} | Empréstimo: ${e.data_emprestimo.toLocaleDateString()} | ` +
+            `Devolvido: ${e.data_devolucao ? e.data_devolucao.toLocaleDateString() : "Não"}`,
+        )
+        .join("\n");
+    } catch (error: any) {
+      return `Erro ao listar: ${error.message}`;
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { Livro } from "../models/Livro";
 import { LivroService } from "../services/LivroService";
+import { NumeroObrigatorio, DataObrigatoria } from "../utils/inputHelper";
 
 export class LivroController {
   constructor(private livroService: LivroService) {}
@@ -12,19 +12,13 @@ export class LivroController {
     autorId: string,
   ): Promise<string> {
     try {
-      const data = new Date(dataLancamento);
-      const qtdTotal = parseInt(quantidadeTotal);
-      const qtdDispo = parseInt(quantidadeDisponivel);
-      const idAutor = parseInt(autorId);
-
-      if (
-        isNaN(data.getTime()) ||
-        isNaN(qtdTotal) ||
-        isNaN(qtdDispo) ||
-        isNaN(idAutor)
-      ) {
-        return "Erro: Formato enviado é inválido. verifique os numeros e a data digitados (AAAA-MM-DD)";
-      }
+      const data = DataObrigatoria(dataLancamento, "Data de lançamento");
+      const qtdTotal = NumeroObrigatorio(quantidadeTotal, "Quantidade Total");
+      const qtdDispo = NumeroObrigatorio(
+        quantidadeDisponivel,
+        "Quantidade Disponível",
+      );
+      const idAutor = NumeroObrigatorio(autorId, "ID do Autor");
 
       const novoLivro = await this.livroService.criar({
         titulo,
@@ -33,20 +27,21 @@ export class LivroController {
         quantidadeDisponivel: qtdDispo,
         autorId: idAutor,
       });
-      return `O livro foi cadastrado com suceso; ID: ${novoLivro.id}, Titulo ${novoLivro.titulo}`;
+      return `O livro foi cadastrado com sucesso; ID: ${novoLivro.id}, Titulo: ${novoLivro.titulo}`;
     } catch (error) {
-      return `Houve um erro ao tentar cadastrar o livro: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 
   async listarTodos(): Promise<string> {
     try {
       const livros = await this.livroService.listarTodos();
-      if (livros.length === 0) return "Nenhum foi cadastrado até o momento";
+      if (livros.length === 0)
+        return "Nenhum livro foi cadastrado até o momento.";
 
-      let tabela = "ID  |  Título  |  Autor ID  |  Disponível  |  QTotal";
+      let tabela = "ID  |  Título  |  Autor ID  |  Disponível  |  QTotal\n";
       livros.forEach((l) => {
-        tabela += `${l.id}  | ${l.titulo}  |  ${l.autorId}  |  ${l.quantidadeDisponivel}  |  ${l.quantidadeTotal}`;
+        tabela += `${l.id}  | ${l.titulo}  |  ${l.autorId}  |  ${l.quantidadeDisponivel}  |  ${l.quantidadeTotal}\n`;
       });
       return tabela;
     } catch (error) {
@@ -56,36 +51,30 @@ export class LivroController {
 
   async buscarPorId(idRaw: string): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      if (isNaN(id))
-        return "Erro ao buscar o ID digitado, favor digitar um número válido";
-
+      const id = NumeroObrigatorio(idRaw, "ID do Livro");
       const livro = await this.livroService.buscarPorId(id);
       return `
-      ------------------------------------------\n
-      Informações sobre o livro: ${livro.titulo}\n
-      ID: ${livro.id}\n
-      Data de lançamento: ${livro.dataLancamento.toLocaleString()}\n
-      Quantidade total: ${livro.quantidadeTotal}\n
-      Quantidade Disponível: ${livro.quantidadeDisponivel}\n
-      Autor ID: ${livro.autorId}\n
+      ------------------------------------------
+      Informações sobre o livro: ${livro.titulo}
+      ID: ${livro.id}
+      Data de lançamento: ${livro.dataLancamento.toLocaleDateString()}
+      Quantidade total: ${livro.quantidadeTotal}
+      Quantidade Disponível: ${livro.quantidadeDisponivel}
+      Autor ID: ${livro.autorId}
       ------------------------------------------
       `;
     } catch (error) {
-      return `Erro ao buscar informações sobre o livro requisitado: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 
   async remover(idRaw: string): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      if (isNaN(id))
-        return "Erro ao tentar remover o ID inserido. Insira um ID válido";
-
+      const id = NumeroObrigatorio(idRaw, "ID do Livro");
       await this.livroService.remover(id);
       return `O livro com o ID ${id} foi removido com sucesso do sistema!`;
     } catch (error) {
-      return `Erro ao tentar remover este ID ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 
@@ -98,21 +87,14 @@ export class LivroController {
     autorId: string,
   ): Promise<string> {
     try {
-      const id = parseInt(idRaw);
-      const data = new Date(dataLancamento);
-      const qtdTotal = parseInt(quantidadeTotal);
-      const qtdDispo = parseInt(quantidadeDisponivel);
-      const idAutor = parseInt(autorId);
-
-      if (
-        isNaN(id) ||
-        isNaN(data.getTime()) ||
-        isNaN(qtdTotal) ||
-        isNaN(qtdDispo) ||
-        isNaN(idAutor)
-      ) {
-        return "Erro: Formato é inválido. Favor verificar a data (AAAA-MM-DD) e os números digitados ";
-      }
+      const id = NumeroObrigatorio(idRaw, "ID do Livro");
+      const data = DataObrigatoria(dataLancamento, "Data de lançamento");
+      const qtdTotal = NumeroObrigatorio(quantidadeTotal, "Quantidade Total");
+      const qtdDispo = NumeroObrigatorio(
+        quantidadeDisponivel,
+        "Quantidade Disponível",
+      );
+      const idAutor = NumeroObrigatorio(autorId, "ID do Autor");
 
       await this.livroService.atualizar(id, {
         titulo,
@@ -124,7 +106,7 @@ export class LivroController {
 
       return `O livro com o ID ${id} foi atualizado com sucesso!!`;
     } catch (error) {
-      return `Erro ao atualizar o livro: ${(error as Error).message}`;
+      return `Erro: ${(error as Error).message}`;
     }
   }
 }
