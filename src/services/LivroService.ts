@@ -1,12 +1,12 @@
-import { AutorRepository } from "../repositories/AutorRepository";
 import { LivroRepository } from "../repositories/LivroRepository";
-import { Livro, LivroImpl } from "../models/Livro";
+import { Livro } from "../models/Livro";
 import { AutorService } from "./AutorService";
+import { RegistroNaoEncontrado, DadosInvalidosError } from "../utils/errors";
 
 export class LivroService {
   constructor(
     private livroRepository: LivroRepository,
-    private autoService: AutorService,
+    private autorService: AutorService,
   ) {}
 
   async criar(livro: Livro): Promise<Livro> {
@@ -15,37 +15,26 @@ export class LivroService {
   }
 
   async atualizar(id: number, livro: Livro): Promise<Livro> {
-    const livroExistente = await this.livroRepository.buscarPorId(id);
-    if (!livroExistente) {
-      throw new Error(
-        `O livro com o ID ${id} não foi encontrado para atualizar`,
-      );
-    }
-
+    await this.buscarPorId(id);
     await this.validarRegrasDeNegocio(livro);
-    const atualizado = await this.livroRepository.atualizar(id, livro);
 
+    const atualizado = await this.livroRepository.atualizar(id, livro);
     if (!atualizado) throw new Error("Erro ao atualizar livro.");
     return atualizado;
   }
 
   private async validarRegrasDeNegocio(livro: Livro): Promise<void> {
     if (!livro.titulo || livro.titulo.trim() === "") {
-      throw new Error("O titulo do livro não pode ser vazio");
+      throw new DadosInvalidosError("O titulo do livro não pode ser vazio.");
     }
 
     if (livro.quantidadeDisponivel > livro.quantidadeTotal) {
-      throw new Error(
-        "A quantidade disponivel não pode ser maior que a total.",
+      throw new DadosInvalidosError(
+        "A quantidade disponível não pode ser maior que a total.",
       );
     }
 
-    const autor = await this.autoService.buscarPorId(livro.autorId);
-    if (!autor) {
-      throw new Error(
-        `O Autor com ID ${livro.autorId} não foi encontrado no nosso sistema.`,
-      );
-    }
+    await this.autorService.buscarPorId(livro.autorId);
   }
 
   async listarTodos(): Promise<Livro[]> {
@@ -55,19 +44,17 @@ export class LivroService {
   async buscarPorId(id: number): Promise<Livro> {
     const livro = await this.livroRepository.buscarPorId(id);
     if (!livro) {
-      throw new Error(
-        `O livro com o ID ${id} não foi encontrado no nosso sistema`,
-      );
+      throw new RegistroNaoEncontrado("Livro", id);
     }
     return livro;
   }
 
   async remover(id: number): Promise<void> {
-    const livroExiste = await this.livroRepository.remover(id);
-    if (!livroExiste) {
-      throw new Error(
-        `Não foi possivel remover o livro com ID ${id}, não foi encontrado este livro em nosso sistema `,
-      );
+    await this.buscarPorId(id);
+
+    const livroRemovido = await this.livroRepository.remover(id);
+    if (!livroRemovido) {
+      throw new RegistroNaoEncontrado("Livro", id);
     }
   }
 }

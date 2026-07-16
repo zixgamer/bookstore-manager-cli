@@ -1,31 +1,23 @@
 import { AutorRepository } from "../repositories/AutorRepository";
-import { Autor, AutorImpl } from "../models/Autor";
+import { Autor } from "../models/Autor";
+import { RegistroNaoEncontrado, DadosInvalidosError } from "../utils/errors";
 
 export class AutorService {
   constructor(private autorRepository: AutorRepository) {}
 
   async criar(autor: Autor): Promise<Autor> {
     this.validarDadosAutor(autor);
-
-    try {
-      return await this.autorRepository.criar(autor);
-    } catch (error) {
-      throw new Error(`Erro ao criar autor: ${error}`);
-    }
+    return await this.autorRepository.criar(autor);
   }
 
   async listarTodos(): Promise<Autor[]> {
-    try {
-      return await this.autorRepository.listarTodos();
-    } catch (error) {
-      throw new Error(`Erro ao listar autores: ${error}`);
-    }
+    return await this.autorRepository.listarTodos();
   }
 
   async buscarPorId(id: number): Promise<Autor> {
     const autor = await this.autorRepository.buscarPorId(id);
     if (!autor) {
-      throw new Error(`Autor com ID ${id} não foi encontrado no sistema.`);
+      throw new RegistroNaoEncontrado("Autor", id);
     }
     return autor;
   }
@@ -34,36 +26,26 @@ export class AutorService {
     await this.buscarPorId(id);
     this.validarDadosAutor(autor);
 
-    try {
-      const autorAtualizado = await this.autorRepository.atualizar(id, autor);
-      if (!autorAtualizado) {
-        throw new Error(`Falha inesperada ao atualizar autor com ID ${id}.`);
-      }
-      return autorAtualizado;
-    } catch (error) {
-      throw new Error(`Erro ao atualizar autor: ${error}`);
+    const autorAtualizado = await this.autorRepository.atualizar(id, autor);
+    if (!autorAtualizado) {
+      throw new Error(`Falha inesperada ao atualizar autor com ID ${id}.`);
     }
+    return autorAtualizado;
   }
 
   async remover(id: number): Promise<void> {
     await this.buscarPorId(id);
 
-    try {
-      const jaRemovido = await this.autorRepository.remover(id);
-      if (!jaRemovido) {
-        throw new Error(`Autor com ID ${id} não foi encontrado.`);
-      }
-    } catch (error) {
-      throw new Error(
-        `Erro ao remover o autor com ID ${id}. Verifique se este autor possui livros vinculados a ele. Detalhes de falha: ${error}`,
-      );
+    const jaRemovido = await this.autorRepository.remover(id);
+    if (!jaRemovido) {
+      throw new RegistroNaoEncontrado("Autor", id);
     }
   }
 
   private validarDadosAutor(autor: Autor): void {
     if (!autor.nome || autor.nome.trim() === "") {
-      throw new Error(
-        "Validação de dados falhou: O nome do autor é obrigatório e não pode estar vazio.",
+      throw new DadosInvalidosError(
+        "O nome do autor é obrigatório e não pode estar vazio.",
       );
     }
   }

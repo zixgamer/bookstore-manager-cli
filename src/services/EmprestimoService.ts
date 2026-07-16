@@ -2,17 +2,11 @@ import { EmprestimoRepository } from "../repositories/EmprestimoRepository";
 import { ClienteRepository } from "../repositories/ClienteRepository";
 import { LivroRepository } from "../repositories/LivroRepository";
 import { EmprestimoImpl } from "../models/Emprestimo";
-import { error } from "node:console";
-
-export class ClienteNaoEncontrado extends Error {
-  name = "ClienteNaoEncontrado";
-}
-export class LivroNaoEncontrado extends Error {
-  name = "LivroNaoEncontrado";
-}
-export class LivroIndisponivel extends Error {
-  name = "LivroIndisponivel";
-}
+import {
+  RegistroNaoEncontrado,
+  LivroIndiposnivel,
+  DadosInvalidosError,
+} from "../utils/errors";
 
 export class EmprestimoService {
   constructor(
@@ -24,40 +18,39 @@ export class EmprestimoService {
   async criar(clienteId: number, livroId: number): Promise<EmprestimoImpl> {
     const cliente = await this.clienteRepo.buscarPorId(clienteId);
     if (!cliente) {
-      throw new ClienteNaoEncontrado(
-        `Cliente com o ID ${clienteId} nao foi encontrado`,
-      );
+      throw new RegistroNaoEncontrado("Cliente", clienteId);
     }
 
-    const livro = await this.livroRepo.buscarPorId(livroId);
+    const livro: any = await this.livroRepo.buscarPorId(livroId);
     if (!livro) {
-      throw new LivroNaoEncontrado(
-        `O livro com o ID ${livroId} nao foi encontrado`,
-      );
+      throw new RegistroNaoEncontrado("Livro", livroId);
     }
 
-    if (livro.quantidadeDisponivel <= 0) {
-      throw new LivroIndisponivel(
-        `O livro ${livro.titulo} nao esta disponivel no momento`,
-      );
+    if (!livro.estaDisponivel()) {
+      throw new LivroIndiposnivel(livro.titulo);
     }
 
-    const novoEmprestimo = new EmprestimoImpl(new Date(), clienteId, livroId);
-    const emprestimoCriado = await this.emprestimoRepo.criar(novoEmprestimo);
+    await this.livroRepo.atualizarEstoque(
+      livroId,
+      livro.quantidadeDisponivel - 1,
+    );
 
-    await this.livroRepo.atualizar(livroId, {
-      ...livro,
-      quantidadeDisponivel: livro.quantidadeDisponivel - 1,
-    });
-    return emprestimoCriado;
+    try {
+      const novoEmprestimo = new EmprestimoImpl(new Date(), clienteId, livroId);
+      return await this.emprestimoRepo.criar(novoEmprestimo);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async registrarDevolucao(id: number): Promise<void> {
     const emprestimo = await this.emprestimoRepo.buscarPorId(id);
-    if (!emprestimo) throw new Error("Empréstimo não foi encontrado");
+    if (!emprestimo) {
+      throw new RegistroNaoEncontrado("Empréstimo", id);
+    }
 
     if (emprestimo.dataDevolucao) {
-      throw new Error("Este livro já foi devolvido");
+      throw new DadosInvalidosError("Este livro já foi devolvido.");
     }
 
     await this.emprestimoRepo.registroDevolucao(id);
@@ -69,8 +62,9 @@ export class EmprestimoService {
         livro.quantidadeDisponivel + 1,
       );
     } else {
-      throw new Error(
-        "O livro vinculado ao empréstimo não foi encontrado no sistema",
+      throw new RegistroNaoEncontrado(
+        "Livro (vinculado ao empréstimo)",
+        emprestimo.livroId,
       );
     }
   }
