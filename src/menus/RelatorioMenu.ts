@@ -31,9 +31,7 @@ export class RelatorioMenu {
           console.log(await this.relatorioController.listarLivroPorAutor());
           break;
         case "4":
-          console.log(
-            await this.relatorioController.contarEmprestimoPorLivro(),
-          );
+          console.log(await this.relatorioController.totalEmprestimoPorLivro());
           break;
         case "5":
           console.log(
