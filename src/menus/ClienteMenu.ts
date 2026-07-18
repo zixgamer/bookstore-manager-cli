@@ -2,7 +2,7 @@ import { rl } from "../utils/readline";
 import { ClienteController } from "../controllers/ClienteController";
 
 export class ClienteMenu {
-  constructor(private clineteController: ClienteController) {}
+  constructor(private clienteController: ClienteController) {}
 
   async iniciar(): Promise<void> {
     let sair = false;
@@ -23,7 +23,7 @@ export class ClienteMenu {
           await this.cadastrar();
           break;
         case "2":
-          console.log(await this.clineteController.listarTodos());
+          console.log(await this.clienteController.listarTodos());
           break;
         case "3":
           await this.buscarPorId();
@@ -48,12 +48,12 @@ export class ClienteMenu {
     const nome = await rl.question("nome: ");
     const email = await rl.question("Email: ");
 
-    console.log(await this.clineteController.criar(nome, email));
+    console.log(await this.clienteController.criar(nome, email));
   }
 
   private async buscarPorId(): Promise<void> {
     const id = await rl.question("Digite o ID do cliente: \n");
-    console.log(await this.clineteController.buscarPorId(id));
+    console.log(await this.clienteController.buscarPorId(id));
   }
 
   private async atualizarTodos(): Promise<void> {
@@ -66,11 +66,11 @@ export class ClienteMenu {
     const nome = await rl.question("Novo Nome: ");
     const email = await rl.question("Novo Email: ");
 
-    console.log(await this.clineteController.atualizar(id, nome, email));
+    console.log(await this.clienteController.atualizar(id, nome, email));
   }
 
   private async remover(): Promise<void> {
     const id = await rl.question("Digite o ID do cliente que será removido: ");
-    console.log(await this.clineteController.remover(id));
+    console.log(await this.clienteController.remover(id));
   }
 }

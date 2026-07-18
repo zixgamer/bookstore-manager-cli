@@ -1,9 +1,10 @@
 import { ClienteRepository } from "../repositories/ClienteRepository";
 import { Cliente } from "../models/Cliente";
 import {
-  RegistroNaoEncontrado,
-  EmailJaCadastrado,
-  DadosInvalidosError,
+  registroNaoEncontrado,
+  emailJaCadastrado,
+  dadosInvalidosError,
+  regraDeNegocioError,
 } from "../utils/errors";
 
 export class ClienteService {
@@ -16,7 +17,7 @@ export class ClienteService {
       cliente.email,
     );
     if (emailJaExiste) {
-      throw new EmailJaCadastrado(cliente.email);
+      throw new emailJaCadastrado(cliente.email);
     }
 
     return await this.clienteRepository.criar(cliente);
@@ -29,7 +30,7 @@ export class ClienteService {
   async buscarPorId(id: number): Promise<Cliente> {
     const cliente = await this.clienteRepository.buscarPorId(id);
     if (!cliente) {
-      throw new RegistroNaoEncontrado("Cliente", id);
+      throw new registroNaoEncontrado("Cliente", id);
     }
     return cliente;
   }
@@ -44,7 +45,7 @@ export class ClienteService {
       clienteAtualizado.nome !== undefined &&
       clienteAtualizado.nome?.trim().length === 0
     ) {
-      throw new DadosInvalidosError("O nome não pode ser vazio.");
+      throw new dadosInvalidosError("O nome não pode ser vazio.");
     }
 
     if (clienteAtualizado.email !== undefined) {
@@ -54,7 +55,7 @@ export class ClienteService {
         clienteAtualizado.email,
       );
       if (emailJaExiste && emailJaExiste.id !== id) {
-        throw new EmailJaCadastrado(clienteAtualizado.email);
+        throw new emailJaCadastrado(clienteAtualizado.email);
       }
     }
 
@@ -67,12 +68,22 @@ export class ClienteService {
 
   async remover(id: number): Promise<void> {
     await this.buscarPorId(id);
-    await this.clienteRepository.remover(id);
+
+    try {
+      await this.clienteRepository.remover(id);
+    } catch (error: any) {
+      if (error.code === "23503" || error.message.includes("foreign key")) {
+        throw new regraDeNegocioError(
+          "Não é possível remover: este cliente possui empréstimos registrados no histórico.",
+        );
+      }
+      throw error;
+    }
   }
 
   private validarDados(nome: string, email: string): void {
     if (!nome || nome.trim().length === 0) {
-      throw new DadosInvalidosError("O nome do cliente não pode estar vazio.");
+      throw new dadosInvalidosError("O nome do cliente não pode estar vazio.");
     }
     this.validarFormatoEmail(email);
   }
@@ -80,7 +91,7 @@ export class ClienteService {
   private validarFormatoEmail(email: string): void {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !regexEmail.test(email)) {
-      throw new DadosInvalidosError("O formato do email é inválido.");
+      throw new dadosInvalidosError("O formato do email é inválido.");
     }
   }
 }

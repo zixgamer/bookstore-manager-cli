@@ -1,6 +1,6 @@
 import { ClienteService } from "../services/ClienteService";
-import { NumeroObrigatorio } from "../utils/inputHelper";
-import { EmailJaCadastrado, DadosInvalidosError } from "../utils/errors";
+import { numeroObrigatorio } from "../utils/inputHelper";
+import { emailJaCadastrado, dadosInvalidosError } from "../utils/errors";
 import { Cliente } from "../models/Cliente";
 
 export class ClienteController {
@@ -12,8 +12,8 @@ export class ClienteController {
       return `O cliente ${criarCliente.nome} foi cadastrado com sucesso (seu ID: ${criarCliente.id})`;
     } catch (error) {
       if (
-        error instanceof EmailJaCadastrado ||
-        error instanceof DadosInvalidosError
+        error instanceof emailJaCadastrado ||
+        error instanceof dadosInvalidosError
       ) {
         return `Erro encontrado: ${error.message}`;
       }
@@ -37,7 +37,7 @@ export class ClienteController {
 
   async buscarPorId(idRaw: string): Promise<string> {
     try {
-      const buscaId = NumeroObrigatorio(idRaw, "ID do Cliente");
+      const buscaId = numeroObrigatorio(idRaw, "ID do Cliente");
       const cliente = await this.clienteService.buscarPorId(buscaId);
       return `Cliente encontrado: ${cliente.nome}, seu email: ${cliente.email}`;
     } catch (error) {
@@ -47,7 +47,7 @@ export class ClienteController {
 
   async atualizar(idRaw: string, nome: string, email: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Cliente");
+      const id = numeroObrigatorio(idRaw, "ID do Cliente");
 
       // Troca de 'any' por 'Partial<Cliente>' ativando o strict typing
       const atualizarId: Partial<Cliente> = {};
@@ -66,7 +66,7 @@ export class ClienteController {
 
   async remover(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Cliente");
+      const id = numeroObrigatorio(idRaw, "ID do Cliente");
       await this.clienteService.remover(id);
       return `O cliente foi removido com sucesso!`;
     } catch (error) {
