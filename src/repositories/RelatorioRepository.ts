@@ -52,7 +52,8 @@ export class RelatorioRepository {
     FROM livro l
     LEFT JOIN emprestimo e ON l.id =e.fk_livro_id
     GROUP BY l.id, l.titulo
-    ORDER BY total_emprestimos DESC, l.titulo ASC;`;
+    ORDER BY total_emprestimos DESC, l.titulo 
+    LIMIT 10;`;
 
     const { rows } = await pool.query(query);
     return rows;

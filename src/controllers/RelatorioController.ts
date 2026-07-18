@@ -60,9 +60,8 @@ export class RelatorioController {
     }
   }
 
-  async contarEmprestimoPorLivro(): Promise<string> {
+  async totalEmprestimoPorLivro(): Promise<string> {
     try {
-      // Correção: Chamando o método certo do Service!
       const dados = await this.relatorioService.totalEmprestimoPorLivro();
       if (dados.length === 0)
         return "Nenhum histórico de empréstimo encontrado.\n";
