@@ -1,5 +1,6 @@
+import { LivroImpl } from "../models/Livro";
 import { LivroService } from "../services/LivroService";
-import { NumeroObrigatorio, DataObrigatoria } from "../utils/inputHelper";
+import { numeroObrigatorio, dataObrigatoria } from "../utils/inputHelper";
 
 export class LivroController {
   constructor(private livroService: LivroService) {}
@@ -9,25 +10,26 @@ export class LivroController {
     dataLancamento: string,
     quantidadeTotal: string,
     quantidadeDisponivel: string,
-    autorId: string,
+    fk_autor_id: string,
   ): Promise<string> {
     try {
-      const data = DataObrigatoria(dataLancamento, "Data de lançamento");
-      const qtdTotal = NumeroObrigatorio(quantidadeTotal, "Quantidade Total");
-      const qtdDispo = NumeroObrigatorio(
+      const data = dataObrigatoria(dataLancamento, "Data de lançamento");
+      const qtdTotal = numeroObrigatorio(quantidadeTotal, "Quantidade Total");
+      const qtdDispo = numeroObrigatorio(
         quantidadeDisponivel,
         "Quantidade Disponível",
       );
-      const idAutor = NumeroObrigatorio(autorId, "ID do Autor");
+      const idAutor = numeroObrigatorio(fk_autor_id, "ID do Autor");
 
-      const novoLivro = await this.livroService.criar({
+      const novoLivro = new LivroImpl(
         titulo,
-        dataLancamento: data,
-        quantidadeTotal: qtdTotal,
-        quantidadeDisponivel: qtdDispo,
-        autorId: idAutor,
-      });
-      return `O livro foi cadastrado com sucesso; ID: ${novoLivro.id}, Titulo: ${novoLivro.titulo}`;
+        data,
+        qtdTotal,
+        qtdDispo,
+        idAutor,
+      );
+      const livroCriado = await this.livroService.criar(novoLivro);
+      return `O livro foi cadastrado com sucesso; ID: ${livroCriado.id}, Titulo: ${livroCriado.titulo}`;
     } catch (error) {
       return `Erro: ${(error as Error).message}`;
     }
@@ -41,7 +43,7 @@ export class LivroController {
 
       let tabela = "ID  |  Título  |  Autor ID  |  Disponível  |  QTotal\n";
       livros.forEach((l) => {
-        tabela += `${l.id}  | ${l.titulo}  |  ${l.autorId}  |  ${l.quantidadeDisponivel}  |  ${l.quantidadeTotal}\n`;
+        tabela += `${l.id}  | ${l.titulo}  |  ${l.autorid}  |  ${l.quantidadeDisponivel}  |  ${l.quantidadeTotal}\n`;
       });
       return tabela;
     } catch (error) {
@@ -51,7 +53,7 @@ export class LivroController {
 
   async buscarPorId(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Livro");
+      const id = numeroObrigatorio(idRaw, "ID do Livro");
       const livro = await this.livroService.buscarPorId(id);
       return `
       ------------------------------------------
@@ -60,7 +62,7 @@ export class LivroController {
       Data de lançamento: ${livro.dataLancamento.toLocaleDateString()}
       Quantidade total: ${livro.quantidadeTotal}
       Quantidade Disponível: ${livro.quantidadeDisponivel}
-      Autor ID: ${livro.autorId}
+      Autor ID: ${livro.autorid}
       ------------------------------------------
       `;
     } catch (error) {
@@ -70,7 +72,7 @@ export class LivroController {
 
   async remover(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Livro");
+      const id = numeroObrigatorio(idRaw, "ID do Livro");
       await this.livroService.remover(id);
       return `O livro com o ID ${id} foi removido com sucesso do sistema!`;
     } catch (error) {
@@ -87,22 +89,24 @@ export class LivroController {
     autorId: string,
   ): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Livro");
-      const data = DataObrigatoria(dataLancamento, "Data de lançamento");
-      const qtdTotal = NumeroObrigatorio(quantidadeTotal, "Quantidade Total");
-      const qtdDispo = NumeroObrigatorio(
+      const id = numeroObrigatorio(idRaw, "ID do Livro");
+      const data = dataObrigatoria(dataLancamento, "Data de lançamento");
+      const qtdTotal = numeroObrigatorio(quantidadeTotal, "Quantidade Total");
+      const qtdDispo = numeroObrigatorio(
         quantidadeDisponivel,
         "Quantidade Disponível",
       );
-      const idAutor = NumeroObrigatorio(autorId, "ID do Autor");
+      const idAutor = numeroObrigatorio(autorId, "ID do Autor");
 
-      await this.livroService.atualizar(id, {
+      const livroParaAtualizar = new LivroImpl(
         titulo,
-        dataLancamento: data,
-        quantidadeTotal: qtdTotal,
-        quantidadeDisponivel: qtdDispo,
-        autorId: idAutor,
-      });
+        data,
+        qtdTotal,
+        qtdDispo,
+        idAutor,
+        id,
+      );
+      await this.livroService.atualizar(id, livroParaAtualizar);
 
       return `O livro com o ID ${id} foi atualizado com sucesso!!`;
     } catch (error) {

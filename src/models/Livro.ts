@@ -4,7 +4,8 @@ export interface Livro {
   dataLancamento: Date;
   quantidadeTotal: number;
   quantidadeDisponivel: number;
-  autorId: number;
+  autorid: number;
+  estaDisponivel(): boolean;
 }
 
 export class LivroImpl implements Livro {
@@ -13,7 +14,7 @@ export class LivroImpl implements Livro {
     public dataLancamento: Date,
     public quantidadeTotal: number,
     public quantidadeDisponivel: number,
-    public autorId: number,
+    public autorid: number,
     public id?: number,
   ) {}
 

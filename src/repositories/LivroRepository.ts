@@ -22,7 +22,7 @@ export class LivroRepository {
         livro.dataLancamento,
         livro.quantidadeTotal,
         livro.quantidadeDisponivel,
-        livro.autorId,
+        livro.autorid,
       ],
     );
     return mapearLinha(resultado.rows[0]);
@@ -49,7 +49,7 @@ export class LivroRepository {
         livro.dataLancamento,
         livro.quantidadeTotal,
         livro.quantidadeDisponivel,
-        livro.autorId,
+        livro.autorid,
         id,
       ],
     );
