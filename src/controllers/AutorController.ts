@@ -1,5 +1,10 @@
 import { AutorService } from "../services/AutorService";
-import { NumeroObrigatorio } from "../utils/inputHelper";
+import {
+  dadosInvalidosError,
+  registroNaoEncontrado,
+  regraDeNegocioError,
+} from "../utils/errors";
+import { numeroObrigatorio } from "../utils/inputHelper";
 
 export class AutorController {
   constructor(private autorService: AutorService) {}
@@ -40,17 +45,23 @@ export class AutorController {
 
   async buscarPorId(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Autor");
+      const id = numeroObrigatorio(idRaw, "ID do Autor");
       const autor = await this.autorService.buscarPorId(id);
       return `Autor foi encontrado: ID:${autor.id}, Nome:${autor.nome}`;
-    } catch (error) {
-      return `Erro: ${(error as Error).message}`;
+    } catch (error: any) {
+      if (
+        error instanceof registroNaoEncontrado ||
+        error instanceof regraDeNegocioError
+      ) {
+        return error.message;
+      }
+      return `Erro inesperado: ${error.message}`;
     }
   }
 
   async atualizar(idRaw: string, nomeRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Autor");
+      const id = numeroObrigatorio(idRaw, "ID do Autor");
       const autorAtualizado = await this.autorService.atualizar(id, {
         nome: nomeRaw,
       });
@@ -63,11 +74,17 @@ export class AutorController {
 
   async remover(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Autor");
+      const id = numeroObrigatorio(idRaw, "ID do Autor");
       await this.autorService.remover(id);
       return `Autor com o ID ${id} foi removido com sucesso do sistema.`;
-    } catch (error) {
-      return `Erro: ${(error as Error).message}`;
+    } catch (error: any) {
+      if (
+        error instanceof registroNaoEncontrado ||
+        error instanceof regraDeNegocioError
+      ) {
+        return error.message;
+      }
+      return `Erro inesperado: ${error.message}`;
     }
   }
 }

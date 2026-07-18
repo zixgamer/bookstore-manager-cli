@@ -1,6 +1,10 @@
 import { AutorRepository } from "../repositories/AutorRepository";
 import { Autor } from "../models/Autor";
-import { RegistroNaoEncontrado, DadosInvalidosError } from "../utils/errors";
+import {
+  registroNaoEncontrado,
+  dadosInvalidosError,
+  regraDeNegocioError,
+} from "../utils/errors";
 
 export class AutorService {
   constructor(private autorRepository: AutorRepository) {}
@@ -17,7 +21,7 @@ export class AutorService {
   async buscarPorId(id: number): Promise<Autor> {
     const autor = await this.autorRepository.buscarPorId(id);
     if (!autor) {
-      throw new RegistroNaoEncontrado("Autor", id);
+      throw new registroNaoEncontrado("Autor", id);
     }
     return autor;
   }
@@ -36,15 +40,22 @@ export class AutorService {
   async remover(id: number): Promise<void> {
     await this.buscarPorId(id);
 
-    const jaRemovido = await this.autorRepository.remover(id);
-    if (!jaRemovido) {
-      throw new RegistroNaoEncontrado("Autor", id);
+    try {
+      await this.autorRepository.remover(id);
+    } catch (error: any) {
+      // 23503 é o código padrão do PostgreSQL para violação de Foreign Key
+      if (error.code === "23503" || error.message.includes("foreign key")) {
+        throw new regraDeNegocioError(
+          "Não é possível remover: este autor possui livros cadastrados.",
+        );
+      }
+      throw error;
     }
   }
 
   private validarDadosAutor(autor: Autor): void {
     if (!autor.nome || autor.nome.trim() === "") {
-      throw new DadosInvalidosError(
+      throw new dadosInvalidosError(
         "O nome do autor é obrigatório e não pode estar vazio.",
       );
     }
