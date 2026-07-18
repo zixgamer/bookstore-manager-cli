@@ -1,24 +1,21 @@
 import { EmprestimoService } from "../services/EmprestimoService";
-import { NumeroObrigatorio } from "../utils/inputHelper";
-import { RegistroNaoEncontrado, LivroIndiposnivel } from "../utils/errors";
+import { numeroObrigatorio } from "../utils/inputHelper";
+import { registroNaoEncontrado, livroIndisponivel } from "../utils/errors";
 
 export class EmprestimoController {
   constructor(private emprestimoService: EmprestimoService) {}
 
-  async fazerEmprestimo(
-    clienteIdRaw: string,
-    livroIdRaw: string,
-  ): Promise<string> {
+  async criar(clienteIdRaw: string, livroIdRaw: string): Promise<string> {
     try {
-      const clienteId = NumeroObrigatorio(clienteIdRaw, "ID do Cliente");
-      const livroId = NumeroObrigatorio(livroIdRaw, "ID do Livro");
+      const clienteId = numeroObrigatorio(clienteIdRaw, "ID do Cliente");
+      const livroId = numeroObrigatorio(livroIdRaw, "ID do Livro");
 
       const emprestimo = await this.emprestimoService.criar(clienteId, livroId);
-      return `✅ O empréstimo foi realizado com sucesso! ID do seu empréstimo: ${emprestimo.id}`;
+      return `O empréstimo foi realizado com sucesso! ID do seu empréstimo: ${emprestimo.id}`;
     } catch (error) {
       if (
-        error instanceof RegistroNaoEncontrado ||
-        error instanceof LivroIndiposnivel
+        error instanceof registroNaoEncontrado ||
+        error instanceof livroIndisponivel
       ) {
         return `Erro de Regra: ${error.message}`;
       }
@@ -28,7 +25,7 @@ export class EmprestimoController {
 
   async devolver(idRaw: string): Promise<string> {
     try {
-      const id = NumeroObrigatorio(idRaw, "ID do Empréstimo");
+      const id = numeroObrigatorio(idRaw, "ID do Empréstimo");
 
       await this.emprestimoService.registrarDevolucao(id);
       return "A devolução do livro foi registrada com sucesso! Estoque atualizado.";
@@ -37,7 +34,7 @@ export class EmprestimoController {
     }
   }
 
-  async listarEmprestimo(): Promise<string> {
+  async listarTodos(): Promise<string> {
     try {
       const lista = await this.emprestimoService.listarEmprestimo();
       if (lista.length === 0)

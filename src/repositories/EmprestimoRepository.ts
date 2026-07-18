@@ -36,7 +36,7 @@ export class EmprestimoRepository {
     return this.mapearLinha(rows[0]);
   }
 
-  async registroDevolucao(id: number): Promise<void> {
+  async registrarDevolucao(id: number): Promise<void> {
     await pool.query(
       "UPDATE emprestimo SET data_devolucao = NOW() WHERE id = $1",
       [id],

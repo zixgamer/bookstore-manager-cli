@@ -19,25 +19,25 @@ export class EmprestimoMenu {
       console.log("2. Devolver Livro");
       console.log("3. Listar Emprestimos");
       console.log("0. voltar");
-    }
 
-    const opcao = await rl.question("Escolha uma opcao: ");
+      const opcao = await rl.question("Escolha uma opcao: ");
 
-    switch (opcao) {
-      case "1":
-        await this.registrarEmprestimo();
-        break;
-      case "2":
-        await this.devolver();
-        break;
-      case "3":
-        console.log(await this.emprestimoController.listarEmprestimo());
-        break;
-      case "0":
-        sair = true;
-        break;
-      default:
-        console.log("Opcao selecionada e invalida");
+      switch (opcao) {
+        case "1":
+          await this.registrarEmprestimo();
+          break;
+        case "2":
+          await this.devolver();
+          break;
+        case "3":
+          console.log(await this.emprestimoController.listarTodos());
+          break;
+        case "0":
+          sair = true;
+          break;
+        default:
+          console.log("Opcao selecionada e invalida");
+      }
     }
   }
 
@@ -52,10 +52,7 @@ export class EmprestimoMenu {
     const clienteId = await rl.question("ID do cliente: ");
     const livroId = await rl.question("ID do livro: ");
 
-    const resultado = await this.emprestimoController.fazerEmprestimo(
-      clienteId,
-      livroId,
-    );
+    const resultado = await this.emprestimoController.criar(clienteId, livroId);
     console.log(resultado);
   }
 
