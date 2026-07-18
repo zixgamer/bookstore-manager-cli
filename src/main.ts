@@ -1,6 +1,7 @@
 import { pool } from "./database/connection";
 import { rl } from "./utils/readline";
 import { testarConexao } from "./database/connection";
+import { rodarSuiteDeTestes } from "./_teste-main"; // somente para testar
 
 // Repositorios
 import { AutorRepository } from "./repositories/AutorRepository";
@@ -71,7 +72,7 @@ async function main() {
 
   let sair = false;
   while (!sair) {
-    console.log("----BookStore Manager----\n");
+    console.log("\n----BookStore Manager----\n");
     console.log("1. Autores");
     console.log("2. Livros");
     console.log("3. Clientes");
@@ -79,7 +80,7 @@ async function main() {
     console.log("5. Relatórios");
     console.log("0. Encerrar Sessão");
 
-    const opcao = await rl.question("Escolha uma opção: \n");
+    const opcao = await rl.question("Escolha uma opção: ");
 
     switch (opcao) {
       case "1":
@@ -102,7 +103,7 @@ async function main() {
         console.log("Encerrando a sessão...");
         break;
       default:
-        console.log("Opção selecionada é a incorreta! Tente novamente");
+        console.log("Opção inválida! Tente novamente.");
     }
   }
 
