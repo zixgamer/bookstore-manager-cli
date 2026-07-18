@@ -1,7 +1,11 @@
 import { LivroRepository } from "../repositories/LivroRepository";
 import { Livro } from "../models/Livro";
 import { AutorService } from "./AutorService";
-import { RegistroNaoEncontrado, DadosInvalidosError } from "../utils/errors";
+import {
+  registroNaoEncontrado,
+  dadosInvalidosError,
+  regraDeNegocioError,
+} from "../utils/errors";
 
 export class LivroService {
   constructor(
@@ -25,16 +29,16 @@ export class LivroService {
 
   private async validarRegrasDeNegocio(livro: Livro): Promise<void> {
     if (!livro.titulo || livro.titulo.trim() === "") {
-      throw new DadosInvalidosError("O titulo do livro não pode ser vazio.");
+      throw new dadosInvalidosError("O titulo do livro não pode ser vazio.");
     }
 
     if (livro.quantidadeDisponivel > livro.quantidadeTotal) {
-      throw new DadosInvalidosError(
+      throw new dadosInvalidosError(
         "A quantidade disponível não pode ser maior que a total.",
       );
     }
 
-    await this.autorService.buscarPorId(livro.autorId);
+    await this.autorService.buscarPorId(livro.autorid);
   }
 
   async listarTodos(): Promise<Livro[]> {
@@ -44,7 +48,7 @@ export class LivroService {
   async buscarPorId(id: number): Promise<Livro> {
     const livro = await this.livroRepository.buscarPorId(id);
     if (!livro) {
-      throw new RegistroNaoEncontrado("Livro", id);
+      throw new registroNaoEncontrado("Livro", id);
     }
     return livro;
   }
@@ -52,9 +56,15 @@ export class LivroService {
   async remover(id: number): Promise<void> {
     await this.buscarPorId(id);
 
-    const livroRemovido = await this.livroRepository.remover(id);
-    if (!livroRemovido) {
-      throw new RegistroNaoEncontrado("Livro", id);
+    try {
+      await this.livroRepository.remover(id);
+    } catch (error: any) {
+      if (error.code === "23503" || error.message.includes("foreign key")) {
+        throw new regraDeNegocioError(
+          "Não é possível remover: este livro possui empréstimos registrados no histórico.",
+        );
+      }
+      throw error;
     }
   }
 }
