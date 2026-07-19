@@ -1,7 +1,6 @@
 import { pool } from "./database/connection";
 import { rl } from "./utils/readline";
 import { testarConexao } from "./database/connection";
-import { rodarSuiteDeTestes } from "./_teste-main"; // somente para testar
 
 // Repositorios
 import { AutorRepository } from "./repositories/AutorRepository";
