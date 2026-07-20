@@ -42,7 +42,7 @@ CREATE DATABASE bookstore_db;
 2. Execute o arquivo contendo o schema para criar todas as tabelas. No terminal, rode o comando exato (substituindo pelo seu usuário):
 
 ```bash
-psql -U postgress -d bookstore_db -f src/database/schema.sql
+psql -U postgres -d bookstore_db -f src/database/schema.sql
 
 ```
 
